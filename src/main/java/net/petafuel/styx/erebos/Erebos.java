@@ -6,15 +6,20 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 import net.petafuel.styx.erebos.boundary.Cacheable;
 import net.petafuel.styx.erebos.control.Watcher;
 import net.petafuel.styx.erebos.entity.CacheableWrapper;
 import net.petafuel.styx.erebos.entity.Properties;
 
 public class Erebos {
+    private static final Logger LOG = LogManager.getLogger(Erebos.class);
     private ConcurrentSkipListMap<Object, CacheableWrapper> cachables;
 
     private Erebos() {
+        LOG.info("Starting Erebos WATCHER_FREQUENCY={}, WATCHER_CACHABLE_MAX_UNUSED_LIFETIME={}", System.getProperty(Properties.WATCHER_FREQUENCY, "5"), System.getProperty(Properties.WATCHER_CACHABLE_MAX_UNUSED_LIFETIME, "180"));
         cachables = new ConcurrentSkipListMap<>();
         ScheduledExecutorService scheduledThreadPoolExecutor = Executors.newSingleThreadScheduledExecutor();
         scheduledThreadPoolExecutor.scheduleWithFixedDelay(new Watcher(), 0, Integer

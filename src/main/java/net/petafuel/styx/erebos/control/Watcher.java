@@ -2,14 +2,12 @@ package net.petafuel.styx.erebos.control;
 
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.petafuel.styx.erebos.Erebos;
-import net.petafuel.styx.erebos.boundary.Cacheable;
 import net.petafuel.styx.erebos.entity.CacheableWrapper;
 import net.petafuel.styx.erebos.entity.Properties;
 
@@ -38,13 +36,19 @@ public final class Watcher implements Runnable {
                 sizeBefore - Erebos.getInstance().getCachables().size());
     }
 
-    private boolean checkUnusedObjects(Entry<Object, CacheableWrapper> cachedObject) {
+    boolean checkUnusedObjects(Entry<Object, CacheableWrapper> cachedObject) {
         Calendar currentTime = Calendar.getInstance();
         currentTime.setTime(new Date());
         Calendar overdueTime = Calendar.getInstance();
         overdueTime.setTimeInMillis(cachedObject.getValue().getLastAccessed());
-        overdueTime.add(Calendar.SECOND, maxUnusedLifetime);
+        overdueTime.add(Calendar.SECOND, getMaxUnusedLifetime());
         return currentTime.after(overdueTime);
     }
 
+    /**
+     * @return the maxUnusedLifetime
+     */
+    public int getMaxUnusedLifetime() {
+        return maxUnusedLifetime;
+    }
 }
