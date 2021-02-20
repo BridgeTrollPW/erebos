@@ -2,11 +2,15 @@ package net.petafuel.styx.erebos.control;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import net.petafuel.styx.erebos.Erebos;
+import net.petafuel.styx.erebos.boundary.Cacheable;
+import net.petafuel.styx.erebos.entity.CacheableWrapper;
 import net.petafuel.styx.erebos.entity.Properties;
 
 public final class Watcher implements Runnable {
@@ -29,20 +33,18 @@ public final class Watcher implements Runnable {
         int sizeBefore = Erebos.getInstance().getCachables().size();
         LOG.debug("CachedObjectAmount={}", sizeBefore);
 
-        Erebos.getInstance().getCachables().entrySet().removeIf((cachedObject) -> {
-            Calendar currentTime = Calendar.getInstance();
-            currentTime.setTime(new Date());
-            Calendar overdueTime = Calendar.getInstance();
-            overdueTime.setTimeInMillis(cachedObject.getValue().getLastAccessed());
-            overdueTime.add(Calendar.SECOND, maxUnusedLifetime);
+        Erebos.getInstance().getCachables().entrySet().removeIf(this::checkUnusedObjects);
+        LOG.debug("Removed {} objects from cache, object unused lifetime expired",
+                sizeBefore - Erebos.getInstance().getCachables().size());
+    }
 
-            if (currentTime.after(overdueTime)) {
-                return true;
-            } else {
-                return false;
-            }
-        });
-        LOG.debug("Removed {} objects from cache, object unused lifetime expired", sizeBefore - Erebos.getInstance().getCachables().size());
+    private boolean checkUnusedObjects(Entry<Object, CacheableWrapper> cachedObject) {
+        Calendar currentTime = Calendar.getInstance();
+        currentTime.setTime(new Date());
+        Calendar overdueTime = Calendar.getInstance();
+        overdueTime.setTimeInMillis(cachedObject.getValue().getLastAccessed());
+        overdueTime.add(Calendar.SECOND, maxUnusedLifetime);
+        return currentTime.after(overdueTime);
     }
 
 }
