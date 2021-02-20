@@ -9,3 +9,9 @@ buildNumber.properties
 .mvn/timing.properties
 # https://github.com/takari/maven-wrapper#usage-without-binary-jar
 .mvn/wrapper/maven-wrapper.jar
+erebos/.factorypath
+erebos/.project
+erebos/.settings/
+eclipse-formatter.xml
+erebos.log
+erebos/.classpath
