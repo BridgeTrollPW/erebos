@@ -1,6 +1,7 @@
 package net.petafuel.styx.erebos.entity;
 
 import java.util.Date;
+import java.util.Objects;
 import java.util.Calendar;
 
 import net.petafuel.styx.erebos.boundary.Cacheable;
@@ -14,6 +15,7 @@ public final class CacheableWrapper {
     private Cacheable cachedObject;
 
     public CacheableWrapper(Cacheable cacheable) {
+        Objects.requireNonNull(cacheable);
         Calendar now = Calendar.getInstance();
         now.setTime(new Date());
         firstWrite = now.getTimeInMillis();

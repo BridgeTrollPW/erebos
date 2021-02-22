@@ -17,11 +17,14 @@ import net.petafuel.styx.erebos.entity.Properties;
 public class Erebos {
     private static final Logger LOG = LogManager.getLogger(Erebos.class);
     private ConcurrentSkipListMap<Object, CacheableWrapper> cachables;
+    ScheduledExecutorService scheduledThreadPoolExecutor;
 
     private Erebos() {
-        LOG.info("Starting Erebos WATCHER_FREQUENCY={}, WATCHER_CACHABLE_MAX_UNUSED_LIFETIME={}", System.getProperty(Properties.WATCHER_FREQUENCY, "5"), System.getProperty(Properties.WATCHER_CACHABLE_MAX_UNUSED_LIFETIME, "180"));
+        LOG.info("Starting Erebos WATCHER_FREQUENCY={}, WATCHER_CACHABLE_MAX_UNUSED_LIFETIME={}",
+                System.getProperty(Properties.WATCHER_FREQUENCY, "5"),
+                System.getProperty(Properties.WATCHER_CACHABLE_MAX_UNUSED_LIFETIME, "180"));
         cachables = new ConcurrentSkipListMap<>();
-        ScheduledExecutorService scheduledThreadPoolExecutor = Executors.newSingleThreadScheduledExecutor();
+        scheduledThreadPoolExecutor = Executors.newSingleThreadScheduledExecutor();
         scheduledThreadPoolExecutor.scheduleWithFixedDelay(new Watcher(), 0, Integer
                 .parseInt(System.getProperty(Properties.WATCHER_FREQUENCY, "5")),
                 TimeUnit.SECONDS);
@@ -52,10 +55,21 @@ public class Erebos {
 
     @SuppressWarnings({ "unchecked" })
     public <T> T get(Object identifier) {
-        return (T) getRaw(identifier);
+        return (T) getRaw(identifier).getCachedObject();
     }
 
-    public Cacheable getRaw(Object identifier) {
-        return cachables.get(identifier).getCachedObject();
+    public CacheableWrapper getRaw(Object identifier) {
+        return cachables.get(identifier);
+    }
+
+    public void restart() throws NumberFormatException, InterruptedException {
+        LOG.debug("restarting");
+        scheduledThreadPoolExecutor.awaitTermination(
+                Long.parseLong(System.getProperty(Properties.WATCHER_FREQUENCY, "5")), TimeUnit.SECONDS);
+        cachables.clear();
+        scheduledThreadPoolExecutor.scheduleWithFixedDelay(new Watcher(), 0, Integer
+                .parseInt(System.getProperty(Properties.WATCHER_FREQUENCY, "5")),
+                TimeUnit.SECONDS);
+        LOG.debug("restarted");
     }
 }
